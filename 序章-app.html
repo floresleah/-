@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>序章 · 一站式 AI 成长助手</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'art': ['"Ma Shan Zheng"', '"ZCOOL XiaoWei"', 'cursive'],
+                        'title': ['"Noto Serif SC"', 'serif'],
+                        'sans': ['Inter', '"Noto Sans SC"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root[data-theme="light"] {
+            --text: #0f172a;
+            --muted: #64748b;
+            --card: rgba(255, 255, 255, .75);
+            --bd: rgba(255, 255, 255, .88);
+            --input: rgba(255, 255, 255, .92);
+        }
+
+        :root[data-theme="dark"] {
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --card: rgba(15, 23, 42, .7);
+            --bd: rgba(148, 163, 184, .25);
+            --input: rgba(15, 23, 42, .85);
+        }
+
+        body {
+            margin: 0;
+            color: var(--text);
+            font-family: 'Inter', "Noto Sans SC", system-ui, sans-serif;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: "Noto Serif SC", serif;
+        }
+
+        .font-art {
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", cursive;
+        }
+
+        .bg-xz {
+            min-height: 100vh;
+            background: radial-gradient(ellipse 120% 80% at 0% 0%, rgba(255, 228, 235, .85) 0%, transparent 55%), radial-gradient(ellipse 100% 70% at 100% 10%, rgba(219, 234, 254, .9) 0%, transparent 50%), radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255, 237, 213, .85) 0%, transparent 55%), linear-gradient(180deg, #fefefe 0%, #f8fafc 45%, #fff7ed 100%);
+        }
+
+        [data-theme="dark"] .bg-xz {
+            background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+        }
+
+        .glass {
+            background: var(--card);
+            border: 1px solid var(--bd);
+            backdrop-filter: blur(10px);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: .5rem .85rem;
+            font-size: .85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .toast-wrap {
+            position: fixed;
+            right: 12px;
+            bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        .toast {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--bd);
+            background: var(--card);
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .toast.err {
+            border-color: rgba(251, 113, 133, .55);
+            color: #e11d48;
+        }
+
+        .hl-add {
+            background: rgba(52, 211, 153, .28);
+            border-radius: 3px;
+        }
+
+        .hl-del {
+            background: rgba(251, 113, 133, .24);
+            text-decoration: line-through;
+            border-radius: 3px;
+        }
+
+        .field {
+            width: 100%;
+            border: 1px solid rgba(148, 163, 184, .35);
+            background: var(--input);
+            border-radius: 12px;
+            padding: .65rem .75rem;
+        }
+
+        .field:focus {
+            outline: none;
+            border-color: #38bdf8;
+            ring: 2px ring-sky-100;
+        }
+    </style>
+</head>
+
+<body class="bg-xz antialiased">
+    <header class="sticky top-0 z-50 glass border-b border-white/40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center gap-2">
+                <button id="btnBack" class="btn hidden bg-white/70 ring-1 ring-slate-200/60">← 返回</button>
+                <a href="#home" class="flex items-center gap-2 text-slate-900">
+                    <span
+                        class="h-9 w-9 rounded-xl inline-flex items-center justify-center bg-gradient-to-br from-rose-100 via-sky-100 to-amber-100 font-art text-xl">序</span>
+                    <span>
+                        <span class="block font-art text-2xl leading-none">序章</span>
+                        <span class="text-[11px] text-slate-500">AI伴你，开启更好的每一章</span>
+                    </span>
+                </a>
+            </div>
+            <nav class="flex flex-wrap items-center gap-2 text-sm">
+                <a href="#resume" class="px-2 py-1 rounded-lg hover:bg-white/60">简历优化</a>
+                <a href="#writing" class="px-2 py-1 rounded-lg hover:bg-white/60">写作助手</a>
+                <a href="#diary" class="px-2 py-1 rounded-lg hover:bg-white/60">情绪日记</a>
+                <a href="#history" class="px-2 py-1 rounded-lg hover:bg-white/60">历史记录</a>
+                <a href="#help" class="px-2 py-1 rounded-lg hover:bg-white/60">帮助中心</a>
+                <button id="btnTheme" class="btn bg-white/70 ring-1 ring-slate-200/60">深色</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 pb-24">
+        <!-- Home Page -->
+        <section id="page-home" class="page active">
+            <div class="text-center">
+                <h1 class="font-art text-6xl mb-2">序章</h1>
+                <p class="text-slate-600">面向在校大学生的一站式 AI 成长助手</p>
+                <p class="text-sm text-slate-500">从求职到学术，从表达内心到整理情绪——让每一次开始，都像翻开崭新一页。</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-4 mt-7">
+                <article
+                    class="group rounded-3xl p-6 md:p-7 glass ring-1 ring-white/80 shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-amber-100/50 transition">
+                    <div
+                        class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-50 text-amber-600 ring-1 ring-amber-100/80">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-2">简历优化</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-4">智能梳理经历亮点、优化表述与结构，让 HR 一眼看到你的价值。</p>
+                    <a href="#resume" class="text-sm font-medium text-amber-700 group-hover:text-amber-800">点击体验 →</a>
+                </article>
+                <article
+                    class="group rounded-3xl p-6 md:p-7 glass ring-1 ring-white/80 shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-sky-100/50 transition">
+                    <div
+                        class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 to-indigo-50 text-sky-600 ring-1 ring-sky-100/80">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-2">写作助手</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-4">润色论文，并一键整理演示文稿大纲，让写作与汇报更省力。</p>
+                    <a href="#writing" class="text-sm font-medium text-sky-600 group-hover:text-sky-700">点击体验 →</a>
+                </article>
+                <article
+                    class="group rounded-3xl p-6 md:p-7 glass ring-1 ring-white/80 shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-rose-100/50 transition">
+                    <div
+                        class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-100 to-orange-50 text-rose-500 ring-1 ring-rose-100/80">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-2">情绪日记</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-4">记录心情与触发事件，温和回顾趋势，帮你更了解自己。</p>
+                    <a href="#diary" class="text-sm font-medium text-rose-600 group-hover:text-rose-700">点击体验 →</a>
+                </article>
+            </div>
+        </section>
+
+        <!-- Resume Page -->
+        <section id="page-resume" class="page">
+            <h2 class="text-3xl mb-1">简历优化</h2>
+            <p class="text-sm text-slate-500 mb-4">输入/上传 → 方向设置 → AI优化</p>
+            <div class="glass rounded-3xl p-5 space-y-3">
+                <div class="flex flex-wrap gap-2 items-center text-sm">
+                    <label class="btn bg-white/80 ring-1 ring-slate-200 cursor-pointer">上传文件<input id="resumeFile"
+                            type="file" accept=".doc,.docx,.pdf,.txt" hidden /></label>
+                    <span class="text-slate-500">.docx/.pdf/.txt，≤30MB</span><span id="resumeWc"
+                        class="ml-auto text-slate-500">字数 0</span>
+                </div>
+                <textarea id="resumeText" rows="10" class="field" placeholder="粘贴简历全文…"></textarea>
+                <div class="flex flex-wrap gap-2">
+                    <input id="resumeJob" class="field flex-1 min-w-[220px]" placeholder="岗位关键词（可选）" />
+                    <select id="resumeDir" class="field w-[150px]">
+                        <option>平衡</option>
+                        <option>更简洁</option>
+                        <option>更量化</option>
+                    </select>
+                    <button id="btnResumeAi"
+                        class="btn text-white bg-gradient-to-r from-amber-400 to-orange-300 shadow-md">AI 优化</button>
+                </div>
+            </div>
+            <div id="resumeCompare" class="hidden glass rounded-3xl p-5 mt-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold">优化前后对比</h3>
+                    <div class="flex gap-2"><button id="btnResumeCopy"
+                            class="btn bg-white/80 ring-1 ring-slate-200">复制</button><button id="btnResumeRegenerate"
+                            class="btn bg-white/80 ring-1 ring-slate-200">重新生成</button></div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-3 text-sm leading-relaxed">
+                    <div class="rounded-2xl bg-white/65 border p-3 max-h-[420px] overflow-auto">
+                        <div class="text-xs font-bold mb-1">优化前</div>
+                        <div id="resumeBeforeHtml"></div>
+                    </div>
+                    <div class="rounded-2xl bg-white/65 border p-3 max-h-[420px] overflow-auto">
+                        <div class="text-xs font-bold mb-1 text-emerald-600">优化后</div>
+                        <div id="resumeAfterHtml"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="glass rounded-3xl p-5 mt-4">
+                <h3 class="font-semibold mb-2">最近 5 次优化记录</h3>
+                <ul id="resumeHist" class="space-y-2 text-sm"></ul>
+            </div>
+        </section>
+
+        <!-- Writing Page -->
+        <section id="page-writing" class="page">
+            <h2 class="text-3xl mb-1">写作助手</h2>
+            <p class="text-sm text-slate-500 mb-4">润色 / PPT 大纲</p>
+            <div class="flex gap-2 mb-4"><button class="btn tabW bg-sky-100" data-tab="polish">写作润色</button><button
+                    class="btn tabW bg-white/80 ring-1 ring-slate-200" data-tab="ppt">PPT大纲</button></div>
+            <div id="wPolish" class="glass rounded-3xl p-5 space-y-3">
+                <div class="flex flex-wrap gap-2 items-center text-sm">
+                    <div id="polishModes" class="flex flex-wrap gap-2"></div>
+                    <label class="btn bg-white/80 ring-1 ring-slate-200 cursor-pointer ml-auto">上传文件<input
+                            id="polishFile" type="file" accept=".doc,.docx,.pdf,.txt" hidden /></label>
+                </div>
+                <textarea id="polishSrc" rows="10" class="field" placeholder="粘贴 6000 字以内文本…"></textarea>
+                <div class="flex justify-between items-center text-xs"><span id="polishLen" class="text-slate-500">0 /
+                        6000</span><button id="btnPolish"
+                        class="btn text-white bg-gradient-to-r from-sky-400 to-indigo-400 shadow-md">开始润色</button></div>
+                <div id="polishOutWrap" class="hidden space-y-2">
+                    <div class="flex flex-wrap gap-2 justify-end">
+                        <button id="copyPolish" class="btn bg-white/80 ring-1 ring-slate-200">复制</button>
+                        <button id="expPolishTxt" class="btn bg-white/80 ring-1 ring-slate-200">导出TXT</button>
+                        <button id="expPolishDocx" class="btn bg-white/80 ring-1 ring-slate-200">导出Word</button>
+                        <button id="expPolishPdf" class="btn bg-white/80 ring-1 ring-slate-200">导出PDF</button>
+                    </div>
+                    <div id="polishOut" class="rounded-2xl bg-white/65 border p-3 text-sm max-h-[380px] overflow-auto">
+                    </div>
+                </div>
+            </div>
+            <div id="wPpt" class="hidden glass rounded-3xl p-5 mt-4 space-y-3">
+                <div class="flex flex-wrap gap-2 items-center text-sm">
+                    <input id="pptTopic" class="field flex-1" placeholder="PPT 主题" />
+                    <label class="btn bg-white/80 ring-1 ring-slate-200 cursor-pointer">上传文件<input id="pptFile"
+                            type="file" accept=".doc,.docx,.pdf,.txt" hidden /></label>
+                </div>
+                <textarea id="pptDetail" rows="4" class="field" placeholder="补充说明（受众、时长、重点）"></textarea>
+                <button id="btnPpt"
+                    class="btn text-white bg-gradient-to-r from-rose-400 to-amber-300 shadow-md">生成大纲</button>
+                <div id="pptEditor" class="hidden space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- Diary Page -->
+        <section id="page-diary" class="page">
+            <h2 class="text-3xl mb-1">情绪日记</h2>
+            <p class="text-sm text-slate-500 mb-4">写日记 → 保存 → AI识别（可手动改）</p>
+            <div class="grid lg:grid-cols-2 gap-4">
+                <div class="glass rounded-3xl p-5 space-y-3">
+                    <textarea id="diaryBody" rows="11" class="field" placeholder="今天发生了什么？"></textarea>
+                    <div class="text-xs text-slate-500">字数 <span id="diaryWc">0</span></div>
+                    <div id="emoPresets" class="flex flex-wrap gap-1 text-xs"></div>
+                    <div class="flex gap-2"><input id="diaryCustomTag" class="field flex-1"
+                            placeholder="自定义标签" /><button id="btnAddTag"
+                            class="btn bg-white/80 ring-1 ring-slate-200">添加</button></div>
+                    <div id="tagList" class="text-xs text-slate-500"></div>
+                    <div id="stars" class="flex gap-1 text-xs"></div>
+                    <div id="sugBox" class="hidden rounded-2xl p-3 text-sm bg-sky-50 border border-sky-100"></div>
+                    <button id="btnDiarySave"
+                        class="btn text-white bg-gradient-to-r from-rose-400 to-orange-300 shadow-md">保存日记</button>
+                </div>
+                <div class="glass rounded-3xl p-5">
+                    <div class="flex flex-wrap gap-2 text-xs mb-2">
+                        <button class="btn rng bg-white/80 ring-1 ring-slate-200" data-r="week">近7天</button>
+                        <button class="btn rng bg-white/80 ring-1 ring-slate-200" data-r="month">本月</button>
+                        <button class="btn rng bg-white/80 ring-1 ring-slate-200" data-r="all">全部</button>
+                        <button id="toggleChart" class="btn bg-white/80 ring-1 ring-slate-200 ml-auto">切换饼图</button>
+                    </div>
+                    <div class="h-64"><canvas id="cDiary"></canvas></div>
+                </div>
+            </div>
+            <div class="glass rounded-3xl p-5 mt-4">
+                <div class="flex gap-2 mb-2">
+                    <h3 class="font-semibold flex-1">全部日记</h3><input id="diaryQ" class="field w-56"
+                        placeholder="搜索日记内容..." />
+                </div>
+                <ul id="diaryList" class="space-y-2 text-sm"></ul>
+            </div>
+        </section>
+
+        <!-- History Page -->
+        <section id="page-history" class="page">
+            <h2 class="text-3xl mb-2">历史记录</h2>
+            <ul id="histList" class="space-y-2"></ul>
+        </section>
+
+        <!-- Help Page -->
+        <section id="page-help" class="page">
+            <h2 class="text-3xl mb-2">帮助中心</h2>
+            <div class="glass rounded-3xl p-5 text-sm text-slate-600 space-y-4">
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">后端服务状态</h3>
+                    <p id="backendStatus" class="text-xs text-amber-600">正在检查后端连接 (http://localhost:3000)...</p>
+                    <p class="text-[10px] mt-1 text-slate-400">请确保 Node.js 后端已启动。密钥请在后端 .env 文件中配置。</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">常见问题</h3>
+                    <p>FAQ：上传支持 .docx/.pdf/.txt（≤30MB）；AI 失败可重试；可手动修正情绪标签。</p>
+                </div>
+                <textarea id="fbText" rows="4" class="field" placeholder="填写反馈..."></textarea>
+                <button id="btnFb" class="btn text-white bg-gradient-to-r from-sky-400 to-indigo-400">提交反馈</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-slate-500 border-t border-white/40"></footer>
+    <div id="toasts" class="toast-wrap"></div>
+    <div id="detailModal" class="hidden fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-5 max-w-lg w-full max-h-[80vh] overflow-auto">
+            <div class="flex justify-between items-center mb-3">
+                <h3 id="detailTitle" class="font-semibold text-lg">详情</h3>
+                <button id="detailClose" class="btn bg-white/80 ring-1 ring-slate-200">关闭</button>
+            </div>
+            <div id="detailContent" class="text-sm space-y-2"></div>
+        </div>
+    </div>
+
+    <script>
+            (() => {
+                const $ = (id) => document.getElementById(id);
+                const esc = (s = "") => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+                const toast = (m, err = false) => {
+                    const toastsEl = $("toasts");
+                    if (!toastsEl) return console.error("Toasts element missing:", m);
+                    const d = document.createElement("div");
+                    d.className = "toast" + (err ? " err" : "");
+                    d.textContent = m;
+                    toastsEl.appendChild(d);
+                    setTimeout(() => d.remove(), 3000);
+                };
+
+                const setLoading = (btn, isLoading) => {
+                    if (!btn) return;
+                    if (isLoading) {
+                        btn.disabled = true;
+                        btn.dataset.oldText = btn.textContent;
+                        btn.innerHTML = `<span class="inline-block animate-spin mr-1">↻</span>处理中...`;
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = btn.dataset.oldText || btn.textContent;
+                    }
+                };
+
+                const API_BASE = "http://localhost:3000";
+                // 延迟实例化，防止 CDN 未加载完成导致崩溃
+                let dmpInstance = null;
+                const getDmp = () => {
+                    if (!dmpInstance) {
+                        if (typeof diff_match_patch !== 'undefined') {
+                            dmpInstance = new diff_match_patch();
+                        } else {
+                            console.error("diff_match_patch is not loaded");
+                            toast("对比库加载失败，请检查网络", true);
+                        }
+                    }
+                    return dmpInstance;
+                };
+
+                let resumeOpt = "", polishOutResult = "", polishMode = "基础润色", pptSlides = [];
+                let emo = "平静", starsCount = 3, customTags = [], diaryChart = null, chartPie = false, diaryRange = "week", editingId = null;
+                const PRESETS = ["开心", "惊喜", "平静", "难过", "焦虑", "疲惫", "烦躁"];
+
+                const api = async (path, body) => {
+                    const endpointMap = {
+                        "/api/ai/resume-optimize": "/api/resume",
+                        "/api/ai/writing-polish": "/api/write",
+                        "/api/ai/ppt-outline": "/api/write",
+                        "/api/ai/diary-analyze": "/api/mood",
+                        "/api/upload/extract": "/api/upload/extract"
+                    };
+                    const backendPath = endpointMap[path] || path;
+                    const payload = { ...body };
+                    if (path.includes("writing-polish")) payload.type = "polish";
+                    if (path.includes("ppt-outline")) payload.type = "ppt";
+                    if (payload.text) { payload.content = payload.text; delete payload.text; }
+
+                    try {
+                        const isFileUpload = payload.file instanceof File;
+                        let response;
+                        if (isFileUpload) {
+                            const fd = new FormData();
+                            Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
+                            response = await fetch(API_BASE + backendPath, { method: "POST", body: fd });
+                        } else {
+                            response = await fetch(API_BASE + backendPath, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(payload)
+                            });
+                        }
+                        if (!response.ok) throw new Error("网络请求失败");
+                        const resJson = await response.json();
+                        if (resJson.code !== 200) throw new Error(resJson.msg || "后端错误");
+                        const data = resJson.data;
+
+                        // 适配不同模块的数据格式
+                        if (path.includes("resume-optimize")) return { ok: true, json: { optimized: data.optimized } };
+                        if (path.includes("writing-polish")) return { ok: true, json: { polished: data.content } };
+                        if (path.includes("ppt-outline")) return { ok: true, json: { slides: data.slides } };
+                        if (path.includes("upload/extract")) return { ok: true, json: { text: data.text } };
+                        return { ok: true, json: data };
+                    } catch (err) {
+                        toast(err.message, true);
+                        return { ok: false, json: { error: err.message } };
+                    }
+                };
+
+                const pushAct = (type, title, detail = "", content = null) => {
+                    const k = "xuzhang_activity_v1";
+                    const l = JSON.parse(localStorage.getItem(k) || "[]");
+                    l.unshift({ id: Date.now() + "_" + Math.random(), at: new Date().toISOString(), type, title, detail, content });
+                    localStorage.setItem(k, JSON.stringify(l.slice(0, 200)));
+                };
+
+                const saveTxt = (name, text) => {
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+                    a.download = name;
+                    a.click();
+                };
+
+                const saveDocx = async (name, slidesOrLines) => {
+                    if (typeof docx === 'undefined') return toast("Word 库未加载", true);
+                    const { Document, Packer, Paragraph, HeadingLevel } = docx;
+                    let children = [];
+                    if (Array.isArray(slidesOrLines) && slidesOrLines.length > 0 && typeof slidesOrLines[0] === 'object') {
+                        slidesOrLines.forEach((s, i) => {
+                            children.push(new Paragraph({ text: `${i + 1}. ${s.title || ""}`, heading: HeadingLevel.HEADING_1, spacing: { before: 400, after: 200 } }));
+                            (s.bullets || []).forEach(b => children.push(new Paragraph({ text: b, bullet: { level: 0 }, spacing: { before: 100, after: 100 } })));
+                        });
+                    } else {
+                        const lines = Array.isArray(slidesOrLines) ? slidesOrLines : String(slidesOrLines).split('\n');
+                        children = lines.map(t => new Paragraph({ text: t || " " }));
+                    }
+                    const blob = await Packer.toBlob(new Document({ sections: [{ children }] }));
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(blob);
+                    a.download = name;
+                    a.click();
+                };
+
+                const savePdf = (name, title, body) => {
+                    if (typeof html2pdf === 'undefined') return toast("PDF 库未加载", true);
+                    const wrap = document.createElement("div");
+                    wrap.style.padding = "16px";
+                    wrap.innerHTML = `<h2>${esc(title)}</h2><pre style="white-space:pre-wrap">${esc(body)}</pre>`;
+                    html2pdf().set({ filename: name, margin: 8 }).from(wrap).save();
+                };
+
+                const diffHtml = (before, after, mode) => {
+                    const dmp = getDmp();
+                    if (!dmp) return esc(after);
+                    return dmp.diff_main(before || "", after || "").map(x => {
+                        const [op, t] = x;
+                        if (mode === "after") {
+                            if (op === -1) return "";
+                            return op === 1 ? `<span class="hl-add">${esc(t)}</span>` : esc(t);
+                        }
+                        if (op === 1) return "";
+                        return op === -1 ? `<span class="hl-del">${esc(t)}</span>` : esc(t);
+                    }).join("");
+                };
+
+                function route() {
+                    const h = (location.hash || "#home").slice(1);
+                    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+                    const id = ["home", "resume", "writing", "diary", "history", "help"].includes(h) ? h : "home";
+                    const targetPage = $("page-" + id);
+                    if (targetPage) targetPage.classList.add("active");
+
+                    const btnBack = $("btnBack");
+                    if (btnBack) btnBack.classList.toggle("hidden", id === "home");
+
+                    if (id === "diary") { renderDiaryList(); renderDiaryChart(); }
+                    if (id === "history") renderHist();
+                }
+
+                // 初始化路由
+                window.addEventListener("hashchange", route);
+                if ($("btnBack")) $("btnBack").onclick = () => location.hash = "#home";
+                route();
+
+                // 主题切换
+                const currentTheme = localStorage.getItem("xuzhang_theme") || "light";
+                document.documentElement.dataset.theme = currentTheme;
+                if ($("btnTheme")) {
+                    $("btnTheme").textContent = currentTheme === "dark" ? "浅色" : "深色";
+                    $("btnTheme").onclick = () => {
+                        const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+                        document.documentElement.dataset.theme = t;
+                        localStorage.setItem("xuzhang_theme", t);
+                        $("btnTheme").textContent = t === "dark" ? "浅色" : "深色";
+                    };
+                }
+
+                // 检查后端状态
+                fetch(API_BASE + "/api/resume", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ content: "ping" })
+                })
+                    .then(() => {
+                        const statusEl = $("backendStatus");
+                        if (statusEl) {
+                            statusEl.textContent = "✅ 后端连接正常";
+                            statusEl.className = "text-xs text-emerald-600";
+                        }
+                    })
+                    .catch(() => {
+                        const statusEl = $("backendStatus");
+                        if (statusEl) {
+                            statusEl.textContent = "❌ 后端未连接，请启动 Node.js 服务";
+                            statusEl.className = "text-xs text-rose-600";
+                        }
+                    });
+
+                // 简历模块
+                if ($("resumeText")) {
+                    $("resumeText").oninput = () => {
+                        if ($("resumeWc")) $("resumeWc").textContent = "字数 " + [...$("resumeText").value].length;
+                    };
+                }
+
+                const handleFileUpload = async (e, targetTextarea, moduleName) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!f) return;
+                    if (f.size > 30 * 1024 * 1024) return toast("文件超过30MB", true);
+                    toast("正在提取文本...");
+                    try {
+                        if (/\.txt$/i.test(f.name)) {
+                            targetTextarea.value = await f.text();
+                            targetTextarea.dispatchEvent(new Event("input"));
+                            toast("提取成功");
+                            return;
+                        }
+                        if (/\.docx$/i.test(f.name)) {
+                            if (typeof mammoth === 'undefined') throw new Error("Mammoth 库未加载");
+                            const arrayBuffer = await f.arrayBuffer();
+                            const result = await mammoth.extractRawText({ arrayBuffer });
+                            targetTextarea.value = result.value || "";
+                            targetTextarea.dispatchEvent(new Event("input"));
+                            toast("提取成功");
+                            return;
+                        }
+                        const r = await api("/api/upload/extract", { file: f });
+                        if (r.ok) {
+                            targetTextarea.value = r.json.text || "";
+                            targetTextarea.dispatchEvent(new Event("input"));
+                            toast("提取成功");
+                        }
+                    } catch (err) {
+                        toast(err.message || "提取失败", true);
+                    }
+                };
+
+                if ($("resumeFile")) $("resumeFile").onchange = (e) => handleFileUpload(e, $("resumeText"), "resume");
+                if ($("polishFile")) $("polishFile").onchange = (e) => handleFileUpload(e, $("polishSrc"), "writing");
+                if ($("pptFile")) $("pptFile").onchange = (e) => handleFileUpload(e, $("pptDetail"), "writing");
+
+                async function runResume() {
+                    const text = $("resumeText").value.trim();
+                    if (!text) return toast("请先输入简历内容", true);
+                    setLoading($("btnResumeAi"), true);
+                    if ($("resumeCompare")) $("resumeCompare").classList.remove("hidden");
+                    if ($("resumeAfterHtml")) $("resumeAfterHtml").innerHTML = '正在智能优化中...';
+
+                    const r = await api("/api/ai/resume-optimize", {
+                        text: text,
+                        direction: $("resumeDir").value,
+                        jobHint: $("resumeJob").value
+                    });
+
+                    setLoading($("btnResumeAi"), false);
+                    if (r.ok) {
+                        resumeOpt = r.json.optimized || "";
+                        if ($("resumeBeforeHtml")) $("resumeBeforeHtml").innerHTML = diffHtml(text, resumeOpt, "before");
+                        if ($("resumeAfterHtml")) $("resumeAfterHtml").innerHTML = diffHtml(text, resumeOpt, "after");
+
+                        const k = "xuzhang_resume_hist_v1";
+                        const l = JSON.parse(localStorage.getItem(k) || "[]");
+                        l.unshift({
+                            id: String(Date.now()),
+                            at: new Date().toISOString(),
+                            before: text,
+                            after: resumeOpt,
+                            direction: $("resumeDir").value,
+                            jobHint: $("resumeJob").value
+                        });
+                        localStorage.setItem(k, JSON.stringify(l.slice(0, 5)));
+                        renderResumeHist();
+                        pushAct("resume", "简历优化", `${$("resumeDir").value}: ${$("resumeJob").value || "通用"}`, { input: text, output: resumeOpt });
+                        toast("优化完成");
+                    }
+                }
+
+                if ($("btnResumeAi")) $("btnResumeAi").onclick = runResume;
+                if ($("btnResumeRegenerate")) $("btnResumeRegenerate").onclick = runResume;
+                if ($("btnResumeCopy")) {
+                    $("btnResumeCopy").onclick = () => {
+                        if (!resumeOpt) return toast("无内容可复制", true);
+                        navigator.clipboard.writeText(resumeOpt).then(() => toast("已复制"));
+                    };
+                }
+
+                function renderResumeHist() {
+                    const histEl = $("resumeHist");
+                    if (!histEl) return;
+                    const l = JSON.parse(localStorage.getItem("xuzhang_resume_hist_v1") || "[]");
+                    histEl.innerHTML = l.length ? "" : '<li class="text-slate-400">暂无记录</li>';
+                    l.forEach(h => {
+                        const li = document.createElement("li");
+                        li.className = "rounded-2xl bg-white/65 border p-2 flex flex-wrap gap-2 items-center text-xs";
+                        li.innerHTML = `<span>${new Date(h.at).toLocaleDateString()}</span><b class="flex-1">${esc(h.direction)}</b><button class="btn bg-white/80 ring-1 ring-slate-200" data-v>查看</button>`;
+                        li.querySelector("[data-v]").onclick = () => {
+                            $("resumeText").value = h.before;
+                            resumeOpt = h.after;
+                            if ($("resumeCompare")) $("resumeCompare").classList.remove("hidden");
+                            if ($("resumeBeforeHtml")) $("resumeBeforeHtml").innerHTML = diffHtml(h.before, h.after, "before");
+                            if ($("resumeAfterHtml")) $("resumeAfterHtml").innerHTML = diffHtml(h.before, h.after, "after");
+                            if ($("resumeWc")) $("resumeWc").textContent = "字数 " + [...h.before].length;
+                        };
+                        histEl.appendChild(li);
+                    });
+                }
+                renderResumeHist();
+
+                // 写作助手
+                if ($("polishModes")) {
+                    ["基础润色", "正式化", "口语化", "扩写 / 缩写"].forEach(m => {
+                        const b = document.createElement("button");
+                        b.className = "btn bg-white/80 ring-1 ring-slate-200 text-xs";
+                        b.textContent = m;
+                        b.onclick = () => {
+                            polishMode = m;
+                            [...$("polishModes").children].forEach(x => x.classList.remove("ring-sky-400", "bg-sky-50"));
+                            b.classList.add("ring-sky-400", "bg-sky-50");
+                        };
+                        $("polishModes").appendChild(b);
+                    });
+                    if ($("polishModes").firstChild) $("polishModes").firstChild.click();
+                }
+
+                if ($("polishSrc")) {
+                    $("polishSrc").oninput = () => {
+                        if ($("polishLen")) $("polishLen").textContent = `${[...$("polishSrc").value].length} / 6000`;
+                    };
+                }
+
+                if ($("btnPolish")) {
+                    $("btnPolish").onclick = async () => {
+                        const text = $("polishSrc").value.trim();
+                        if (!text) return toast("请输入文本", true);
+                        setLoading($("btnPolish"), true);
+                        if ($("polishOutWrap")) $("polishOutWrap").classList.remove("hidden");
+                        if ($("polishOut")) $("polishOut").innerHTML = '正在智能润色中...';
+
+                        const r = await api("/api/ai/writing-polish", { text, mode: polishMode });
+                        setLoading($("btnPolish"), false);
+                        if (r.ok) {
+                            polishOutResult = r.json.polished || "";
+                            if ($("polishOut")) $("polishOut").innerHTML = diffHtml(text, polishOutResult, "after");
+                            pushAct("writing", "写作润色", `${polishMode}: ${text.slice(0, 30)}...`, { input: text, output: polishOutResult });
+                            toast("润色完成");
+                        }
+                    };
+                }
+
+                if ($("copyPolish")) {
+                    $("copyPolish").onclick = () => {
+                        if (!polishOutResult) return toast("无内容可复制", true);
+                        navigator.clipboard.writeText(polishOutResult).then(() => toast("已复制"));
+                    };
+                }
+                if ($("expPolishTxt")) $("expPolishTxt").onclick = () => saveTxt("润色结果.txt", polishOutResult);
+                if ($("expPolishDocx")) $("expPolishDocx").onclick = () => saveDocx("润色结果.docx", polishOutResult.split("\n"));
+                if ($("expPolishPdf")) $("expPolishPdf").onclick = () => savePdf("润色结果.pdf", "润色结果", polishOutResult);
+
+                document.querySelectorAll(".tabW").forEach(b => b.onclick = () => {
+                    const t = b.dataset.tab;
+                    if ($("wPolish")) $("wPolish").classList.toggle("hidden", t !== "polish");
+                    if ($("wPpt")) $("wPpt").classList.toggle("hidden", t !== "ppt");
+                    document.querySelectorAll(".tabW").forEach(x => {
+                        x.classList.toggle("bg-sky-100", x.dataset.tab === t);
+                        x.classList.toggle("bg-white/80", x.dataset.tab !== t);
+                    });
+                });
+
+                const pptTextContent = () => pptSlides.map((s, i) => `${i + 1}. ${s.title || ""}\n${(s.bullets || []).map(b => `- ${b}`).join("\n")}`).join("\n\n");
+
+                function renderPpt() {
+                    const editor = $("pptEditor");
+                    if (!editor) return;
+                    editor.classList.remove("hidden");
+                    editor.innerHTML = "";
+                    pptSlides.forEach((s, idx) => {
+                        const box = document.createElement("div");
+                        box.className = "rounded-2xl border bg-white/65 p-3 space-y-2";
+                        box.innerHTML = `<div class="flex flex-wrap gap-1 items-center"><button class="btn bg-white/80 ring-1 ring-slate-200" data-u>↑</button><button class="btn bg-white/80 ring-1 ring-slate-200" data-d>↓</button><input class="field flex-1" value="${esc(s.title || "")}"/><button class="btn bg-white/80 ring-1 ring-slate-200" data-x>删页</button></div><div class="bl space-y-1"></div><button class="btn bg-white/80 ring-1 ring-slate-200 text-xs" data-a>+要点</button>`;
+
+                        const ti = box.querySelector("input");
+                        ti.oninput = () => pptSlides[idx].title = ti.value;
+
+                        box.querySelector("[data-u]").onclick = () => { if (idx > 0) { [pptSlides[idx - 1], pptSlides[idx]] = [pptSlides[idx], pptSlides[idx - 1]]; renderPpt(); } };
+                        box.querySelector("[data-d]").onclick = () => { if (idx < pptSlides.length - 1) { [pptSlides[idx + 1], pptSlides[idx]] = [pptSlides[idx], pptSlides[idx + 1]]; renderPpt(); } };
+                        box.querySelector("[data-x]").onclick = () => { pptSlides.splice(idx, 1); renderPpt(); };
+
+                        const bl = box.querySelector(".bl");
+                        (s.bullets || []).forEach((b, bi) => {
+                            const row = document.createElement("div");
+                            row.className = "flex gap-1";
+                            row.innerHTML = `<input class="field flex-1 text-sm" value="${esc(b)}"/><button class="btn bg-white/80 ring-1 ring-slate-200 text-xs">删</button>`;
+                            row.querySelector("input").oninput = e => pptSlides[idx].bullets[bi] = e.target.value;
+                            row.querySelector("button").onclick = () => { pptSlides[idx].bullets.splice(bi, 1); renderPpt(); };
+                            bl.appendChild(row);
+                        });
+
+                        box.querySelector("[data-a]").onclick = () => {
+                            if (!pptSlides[idx].bullets) pptSlides[idx].bullets = [];
+                            pptSlides[idx].bullets.push("新要点");
+                            renderPpt();
+                        };
+                        editor.appendChild(box);
+                    });
+
+                    const bar = document.createElement("div");
+                    bar.className = "flex flex-wrap gap-2";
+                    bar.innerHTML = '<button class="btn bg-white/80 ring-1 ring-slate-200" id="pptAddPage">+新增页面</button><button class="btn bg-white/80 ring-1 ring-slate-200" id="pptCopy">复制全文</button><button class="btn bg-white/80 ring-1 ring-slate-200" id="pptExpDocx">导出 Word</button>';
+                    editor.appendChild(bar);
+
+                    if ($("pptAddPage")) $("pptAddPage").onclick = () => { pptSlides.push({ title: "新页面", bullets: ["要点1"] }); renderPpt(); };
+                    if ($("pptCopy")) $("pptCopy").onclick = () => { navigator.clipboard.writeText(pptTextContent()).then(() => toast("已复制")); };
+                    if ($("pptExpDocx")) $("pptExpDocx").onclick = () => saveDocx("PPT大纲.docx", pptSlides);
+                }
+
+                if ($("btnPpt")) {
+                    $("btnPpt").onclick = async () => {
+                        const topic = $("pptTopic").value.trim();
+                        if (!topic) return toast("请输入主题", true);
+                        setLoading($("btnPpt"), true);
+                        const r = await api("/api/ai/ppt-outline", { topic: topic, detail: $("pptDetail").value });
+                        setLoading($("btnPpt"), false);
+                        if (r.ok) {
+                            pptSlides = Array.isArray(r.json.slides) ? r.json.slides : [];
+                            renderPpt();
+                            pushAct("writing", "PPT大纲", topic, { input: topic, output: pptSlides });
+                            toast("大纲已生成");
+                        }
+                    };
+                }
+
+                // 情绪日记
+                if ($("emoPresets")) {
+                    PRESETS.forEach(m => {
+                        const b = document.createElement("button");
+                        b.className = "btn bg-white/80 ring-1 ring-slate-200";
+                        b.textContent = m;
+                        b.onclick = () => {
+                            emo = m;
+                            [...$("emoPresets").children].forEach(x => x.classList.remove("ring-sky-400"));
+                            b.classList.add("ring-sky-400");
+                        };
+                        $("emoPresets").appendChild(b);
+                    });
+                    if ($("emoPresets").children[2]) $("emoPresets").children[2].click();
+                }
+
+                if ($("stars")) {
+                    for (let i = 1; i <= 5; i++) {
+                        const b = document.createElement("button");
+                        b.className = "btn bg-white/80 ring-1 ring-slate-200";
+                        b.textContent = i + "★";
+                        b.onclick = () => {
+                            starsCount = i;
+                            [...$("stars").children].forEach((x, j) => x.style.background = j < i ? "rgba(251,191,36,.35)" : "");
+                        };
+                        $("stars").appendChild(b);
+                    }
+                    if ($("stars").children[2]) $("stars").children[2].click();
+                }
+
+                if ($("diaryBody")) {
+                    $("diaryBody").oninput = () => {
+                        if ($("diaryWc")) $("diaryWc").textContent = [...$("diaryBody").value].length;
+                    };
+                }
+
+                if ($("btnAddTag")) {
+                    $("btnAddTag").onclick = () => {
+                        const t = $("diaryCustomTag").value.trim();
+                        if (!t || customTags.includes(t)) return;
+                        customTags.push(t);
+                        $("diaryCustomTag").value = "";
+                        if ($("tagList")) $("tagList").textContent = "已选：" + customTags.join("、");
+                    };
+                }
+
+                if ($("btnDiarySave")) {
+                    $("btnDiarySave").onclick = async () => {
+                        const body = $("diaryBody").value.trim();
+                        if (!body) return toast("请先写日记", true);
+                        const entryId = editingId || String(Date.now());
+                        const list = JSON.parse(localStorage.getItem("xuzhang_diary_entries_v1") || "[]").filter(x => x.id !== entryId);
+
+                        const newEntry = {
+                            id: entryId,
+                            createdAt: new Date().toISOString(),
+                            body,
+                            emotion: emo,
+                            intensity: starsCount,
+                            customTags: [...customTags],
+                            suggestion: "正在分析中..."
+                        };
+
+                        list.unshift(newEntry);
+                        localStorage.setItem("xuzhang_diary_entries_v1", JSON.stringify(list));
+                        pushAct("diary", "情绪日记", emo, { input: body, output: { emotion: emo, intensity: starsCount, tags: customTags } });
+
+                        $("diaryBody").value = "";
+                        if ($("tagList")) $("tagList").textContent = "";
+                        customTags = [];
+                        editingId = null;
+                        renderDiaryList();
+                        toast("已保存，同步分析中...");
+
+                        api("/api/ai/diary-analyze", { text: body }).then(rr => {
+                            if (rr.ok) {
+                                const updatedList = JSON.parse(localStorage.getItem("xuzhang_diary_entries_v1") || "[]");
+                                const idx = updatedList.findIndex(x => x.id === entryId);
+                                if (idx !== -1) {
+                                    updatedList[idx].emotion = rr.json.emotion || updatedList[idx].emotion;
+                                    updatedList[idx].suggestion = rr.json.suggestion || "";
+                                    localStorage.setItem("xuzhang_diary_entries_v1", JSON.stringify(updatedList));
+                                    renderDiaryList();
+                                    renderDiaryChart();
+                                }
+                            }
+                        });
+                        renderDiaryChart();
+                    };
+                }
+
+                const inRange = (d) => {
+                    const now = new Date(), x = new Date(d);
+                    if (diaryRange === "all") return true;
+                    if (diaryRange === "week") {
+                        const s = new Date();
+                        s.setDate(s.getDate() - 6);
+                        s.setHours(0, 0, 0, 0);
+                        return x >= s;
+                    }
+                    const s = new Date(now.getFullYear(), now.getMonth(), 1);
+                    return x >= s;
+                };
+
+                function renderDiaryList() {
+                    const listEl = $("diaryList");
+                    if (!listEl) return;
+                    const q = $("diaryQ").value.trim().toLowerCase();
+                    const list = JSON.parse(localStorage.getItem("xuzhang_diary_entries_v1") || "[]");
+                    listEl.innerHTML = "";
+                    list.filter(e => !q || e.body.toLowerCase().includes(q) || e.emotion.includes(q)).forEach(e => {
+                        const li = document.createElement("li");
+                        li.className = "rounded-2xl border bg-white/65 p-3";
+                        li.innerHTML = `<div class="flex flex-wrap gap-2 text-xs text-slate-500"><span>${new Date(e.createdAt).toLocaleString()}</span><b>${esc(e.emotion)}</b><span>${e.intensity}★</span><span class="ml-auto flex gap-1"><button class="btn bg-white/80 ring-1 ring-slate-200" data-e>编辑</button><button class="btn bg-white/80 ring-1 ring-slate-200" data-d>删除</button></span></div><div class="text-sm mt-1">${esc(e.body)}</div>${e.suggestion ? `<div class="text-xs mt-2 p-2 bg-sky-50/50 rounded-lg text-sky-700">💡 ${esc(e.suggestion)}</div>` : ""}`;
+                        li.querySelector("[data-d]").onclick = () => {
+                            const fresh = list.filter(x => x.id !== e.id);
+                            localStorage.setItem("xuzhang_diary_entries_v1", JSON.stringify(fresh));
+                            renderDiaryList();
+                            renderDiaryChart();
+                        };
+                        li.querySelector("[data-e]").onclick = () => {
+                            $("diaryBody").value = e.body;
+                            editingId = e.id;
+                            toast("载入编辑");
+                        };
+                        listEl.appendChild(li);
+                    });
+                }
+
+                if ($("diaryQ")) $("diaryQ").oninput = renderDiaryList;
+                document.querySelectorAll(".rng").forEach(b => b.onclick = () => {
+                    diaryRange = b.dataset.r;
+                    renderDiaryChart();
+                });
+                if ($("toggleChart")) $("toggleChart").onclick = () => {
+                    chartPie = !chartPie;
+                    $("toggleChart").textContent = chartPie ? "切换折线图" : "切换饼图";
+                    renderDiaryChart();
+                };
+
+                function renderDiaryChart() {
+                    if (typeof Chart === 'undefined') return console.warn("Chart.js not loaded");
+                    const list = JSON.parse(localStorage.getItem("xuzhang_diary_entries_v1") || "[]").filter(e => inRange(e.createdAt));
+                    if (diaryChart) diaryChart.destroy();
+                    const ctx = $("cDiary");
+                    if (!ctx) return;
+                    if (chartPie) {
+                        const m = {};
+                        list.forEach(e => m[e.emotion] = (m[e.emotion] || 0) + 1);
+                        diaryChart = new Chart(ctx, {
+                            type: "pie",
+                            data: {
+                                labels: Object.keys(m),
+                                datasets: [{
+                                    data: Object.values(m),
+                                    backgroundColor: ["#fbcfe8", "#fde68a", "#bae6fd", "#cbd5e1"]
+                                }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false }
+                        });
+                    } else {
+                        const map = {};
+                        list.forEach(e => {
+                            const k = e.createdAt.split('T')[0];
+                            map[k] = (map[k] || 0) + Number(e.intensity);
+                        });
+                        const ks = Object.keys(map).sort();
+                        diaryChart = new Chart(ctx, {
+                            type: "line",
+                            data: {
+                                labels: ks,
+                                datasets: [{
+                                    label: "心情强度",
+                                    data: ks.map(k => map[k]),
+                                    borderColor: "#38bdf8",
+                                    tension: .2
+                                }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false }
+                        });
+                    }
+                }
+
+                if ($("detailClose")) $("detailClose").onclick = () => $("detailModal").classList.add("hidden");
+                if ($("detailModal")) $("detailModal").onclick = (e) => { if (e.target.id === "detailModal") $("detailModal").classList.add("hidden"); };
+
+                function renderHist() {
+                    const histListEl = $("histList");
+                    if (!histListEl) return;
+                    const list = JSON.parse(localStorage.getItem("xuzhang_activity_v1") || "[]");
+                    histListEl.innerHTML = "";
+                    const typeLabels = { resume: "简历优化", writing: "写作助手", diary: "情绪日记" };
+                    const typeColors = { resume: "bg-rose-100 text-rose-700", writing: "bg-sky-100 text-sky-700", diary: "bg-amber-100 text-amber-700" };
+                    list.forEach(h => {
+                        const li = document.createElement("li");
+                        li.className = "glass rounded-2xl px-3 py-2 text-sm flex flex-col gap-2 cursor-pointer hover:bg-white/50";
+                        const typeLabel = typeLabels[h.type] || h.type;
+                        const typeColor = typeColors[h.type] || "bg-sky-100 text-sky-700";
+                        let outputPreview = "";
+                        if (h.content && h.content.output) {
+                            if (typeof h.content.output === "string") {
+                                outputPreview = esc(h.content.output.slice(0, 50)) + (h.content.output.length > 50 ? "..." : "");
+                            } else if (Array.isArray(h.content.output)) {
+                                outputPreview = h.content.output.map(s => s.title || s).slice(0, 3).join("、") + (h.content.output.length > 3 ? "..." : "");
+                            } else if (h.content.output.emotion) {
+                                outputPreview = `${h.content.output.emotion} · ${h.content.output.intensity || 3}星`;
+                            }
+                        }
+                        let contentHtml = `<span class="text-xs text-slate-400">${new Date(h.at).toLocaleString()}</span><span class="px-2 py-0.5 rounded-full ${typeColor} text-[10px]">${typeLabel}</span><b>${esc(h.title)}</b>`;
+                        if (h.content && h.content.input) contentHtml += `<div class="text-xs text-slate-500 mt-1">输入: ${esc(h.content.input.slice(0, 50))}${h.content.input.length > 50 ? "..." : ""}</div>`;
+                        if (outputPreview) contentHtml += `<div class="text-xs text-slate-600 mt-1">输出: ${outputPreview}</div>`;
+                        contentHtml += `<button class="btn bg-white/80 ring-1 ring-slate-200 ml-auto text-xs self-end" data-del>删除</button>`;
+                        li.innerHTML = contentHtml;
+                        li.onclick = (e) => {
+                            if (e.target.dataset.del) return;
+                            let detailHtml = `<div class="mb-3"><b>类型:</b> ${typeLabel}</div><div class="mb-3"><b>操作:</b> ${esc(h.title)}</div>`;
+                            if (h.content && h.content.input) detailHtml += `<div class="mb-3"><b>输入内容:</b><pre class="whitespace-pre-wrap mt-1 text-slate-600">${esc(h.content.input)}</pre></div>`;
+                            if (h.content && h.content.output) {
+                                if (typeof h.content.output === "string") {
+                                    detailHtml += `<div><b>优化结果:</b><pre class="whitespace-pre-wrap mt-1 text-slate-600">${esc(h.content.output)}</pre></div>`;
+                                } else if (Array.isArray(h.content.output)) {
+                                    detailHtml += `<div><b>PPT大纲:</b><div class="mt-2 space-y-2">`;
+                                    h.content.output.forEach((slide, idx) => {
+                                        detailHtml += `<div class="pl-2 border-l-2 border-sky-200"><b>${idx + 1}. ${esc(slide.title || "")}</b>`;
+                                        if (slide.bullets && Array.isArray(slide.bullets) && slide.bullets.length > 0) {
+                                            detailHtml += `<ul class="mt-1 ml-2 list-disc list-inside text-slate-600">`;
+                                            slide.bullets.forEach(b => detailHtml += `<li>${esc(b)}</li>`);
+                                            detailHtml += `</ul>`;
+                                        }
+                                        detailHtml += `</div>`;
+                                    });
+                                    detailHtml += `</div></div>`;
+                                } else if (h.content.output.emotion) {
+                                    detailHtml += `<div><b>情绪识别:</b> ${esc(h.content.output.emotion)} · ${h.content.output.intensity || 3}星</div>`;
+                                    if (h.content.output.tags && h.content.output.tags.length > 0) {
+                                        detailHtml += `<div class="mt-1"><b>标签:</b> ${h.content.output.tags.join("、")}</div>`;
+                                    }
+                                }
+                            }
+                            $("detailTitle").textContent = typeLabel + " - " + h.title;
+                            $("detailContent").innerHTML = detailHtml;
+                            $("detailModal").classList.remove("hidden");
+                        };
+                        li.querySelector("[data-del]").onclick = () => {
+                            const fresh = list.filter(x => x.id !== h.id);
+                            localStorage.setItem("xuzhang_activity_v1", JSON.stringify(fresh));
+                            renderHist();
+                        };
+                        histListEl.appendChild(li);
+                    });
+                }
+
+                if ($("btnFb")) {
+                    $("btnFb").onclick = () => {
+                        const t = $("fbText").value.trim();
+                        if (!t) return toast("请填写反馈内容", true);
+                        $("fbText").value = "";
+                        toast("感谢您的反馈！");
+                    };
+                }
+            })();
+    </script>
+
+</body>
+
+</html>
